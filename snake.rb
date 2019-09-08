@@ -104,6 +104,10 @@ begin
         snake_head_pos = Point.new(snake_head_pos.x, snake_head_pos.y + 2)
       end
 
+      if snake_head_pos == pellet_pos
+        pellet_pos = grid.rand_pos
+      end
+
       grid.draw(pellet_pos, snake_head_pos)
     end
   end
