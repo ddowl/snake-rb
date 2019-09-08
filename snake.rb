@@ -1,5 +1,6 @@
 require 'curses'
 require 'logger'
+require 'set'
 include Curses
 
 log_file = File.open('snake.log', 'w')
@@ -23,6 +24,10 @@ class Point
 
   def ==(o)
     @x == o.x && @y == o.y
+  end
+
+  def hash
+    31 * @x ^ @y
   end
 end
 
@@ -77,11 +82,13 @@ class Grid
   end
 
   def rand_pos(taken_points = [])
-    possible_heights = (0...@grid_height).step(2).to_a
-    possible_widths = (0...@grid_width).step(2).to_a
+    unless @possible_points
+      possible_heights = (0...@grid_height).step(2).to_a
+      possible_widths = (0...@grid_width).step(2).to_a
 
-    possible_points = possible_heights.product(possible_widths).map { |x, y| Point.new(x, y) }
-    available_points = possible_points.reject { |pos| taken_points.include?(pos) }
+      @possible_points = possible_heights.product(possible_widths).map { |x, y| Point.new(x, y) }
+    end
+    available_points = @possible_points.reject { |pos| taken_points.include?(pos) }
 
     available_points.sample
   end
@@ -97,6 +104,10 @@ class Grid
   end
 end
 
+def snake_collision(snake)
+  snake[1..-1].include?(snake.first)
+end
+
 begin
   grid = Grid.new
   pellet_pos = grid.rand_pos
@@ -104,7 +115,7 @@ begin
   grid.draw(pellet_pos, snake)
 
   input = nil
-  while input != "q" && grid.in_bounds(snake.first)
+  while input != "q" && grid.in_bounds(snake.first) && !snake_collision(snake)
     input = grid.getch
     if DIRECTIONS.include?(input)
       new_pos = nil
