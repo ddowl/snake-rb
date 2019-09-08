@@ -76,10 +76,14 @@ class Grid
     @grid.getch
   end
 
-  def rand_pos
+  def rand_pos(taken_points = [])
     possible_heights = (0...@grid_height).step(2).to_a
     possible_widths = (0...@grid_width).step(2).to_a
-    Point.new(possible_heights.sample, possible_widths.sample)
+
+    possible_points = possible_heights.product(possible_widths).map { |x, y| Point.new(x, y) }
+    available_points = possible_points.reject { |pos| taken_points.include?(pos) }
+
+    available_points.sample
   end
 
   def in_bounds(pos)
@@ -96,7 +100,7 @@ end
 begin
   grid = Grid.new
   pellet_pos = grid.rand_pos
-  snake = [grid.rand_pos]
+  snake = [grid.rand_pos([pellet_pos])]
   grid.draw(pellet_pos, snake)
 
   input = nil
@@ -118,7 +122,7 @@ begin
       end
 
       if new_pos == pellet_pos
-        pellet_pos = grid.rand_pos
+        pellet_pos = grid.rand_pos(snake + [new_pos])
       else
         snake.pop # remove snake butt
       end
