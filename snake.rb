@@ -20,6 +20,10 @@ class Point
     @x = x
     @y = y
   end
+
+  def ==(o)
+    @x == o.x && @y == o.y
+  end
 end
 
 class Grid
@@ -76,6 +80,10 @@ class Grid
     Point.new(possible_heights.sample, possible_widths.sample)
   end
 
+  def in_bounds(pos)
+    pos.x >= 0 && pos.x < @grid_height && pos.y >= 0 && pos.y < @grid_width
+  end
+
   def close
     @grid.close
     @grid_box.close
@@ -90,7 +98,7 @@ begin
   grid.draw(pellet_pos, snake_head_pos)
 
   input = nil
-  while input != "q"
+  while input != "q" && grid.in_bounds(snake_head_pos)
     input = grid.getch
     if DIRECTIONS.include?(input)
       case input
