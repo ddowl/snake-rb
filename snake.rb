@@ -6,6 +6,8 @@ include Curses
 log_file = File.open('snake.log', 'w')
 LOGGER = Logger.new(log_file)
 
+FRAME_LATENCY_SEC = 0.12
+
 DIRECTIONS = [
   Key::UP,
   Key::DOWN,
@@ -112,36 +114,42 @@ begin
   grid = Grid.new
   pellet_pos = grid.rand_pos
   snake = [grid.rand_pos([pellet_pos])]
+  direction = nil
   grid.draw(pellet_pos, snake)
 
   input = nil
   while input != "q" && grid.in_bounds(snake.first) && !snake_collision(snake)
     input = grid.getch
-    if DIRECTIONS.include?(input)
-      new_pos = nil
-      snake_head_pos = snake.first
 
-      case input
-      when Key::UP
-        new_pos = Point.new(snake_head_pos.x - 1, snake_head_pos.y)
-      when Key::DOWN
-        new_pos = Point.new(snake_head_pos.x + 1, snake_head_pos.y)
-      when Key::LEFT
-        new_pos = Point.new(snake_head_pos.x, snake_head_pos.y - 2)
-      when Key::RIGHT
-        new_pos = Point.new(snake_head_pos.x, snake_head_pos.y + 2)
-      end
-
-      if new_pos == pellet_pos
-        pellet_pos = grid.rand_pos(snake + [new_pos])
-      else
-        snake.pop # remove snake butt
-      end
-
-      snake.unshift(new_pos)
-
-      grid.draw(pellet_pos, snake)
+    if input && DIRECTIONS.include?(input)
+      direction = input
     end
+
+    snake_head_pos = snake.first
+    new_pos = snake_head_pos
+
+    case direction
+    when Key::UP
+      new_pos = Point.new(snake_head_pos.x - 1, snake_head_pos.y)
+    when Key::DOWN
+      new_pos = Point.new(snake_head_pos.x + 1, snake_head_pos.y)
+    when Key::LEFT
+      new_pos = Point.new(snake_head_pos.x, snake_head_pos.y - 2)
+    when Key::RIGHT
+      new_pos = Point.new(snake_head_pos.x, snake_head_pos.y + 2)
+    end
+
+    if new_pos == pellet_pos
+      pellet_pos = grid.rand_pos(snake + [new_pos])
+    else
+      snake.pop # remove snake butt
+    end
+
+    snake.unshift(new_pos)
+
+    grid.draw(pellet_pos, snake)
+
+    sleep FRAME_LATENCY_SEC
   end
 rescue => ex
   LOGGER.error(ex)
