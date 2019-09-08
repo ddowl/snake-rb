@@ -110,6 +110,19 @@ def snake_collision(snake)
   snake[1..-1].include?(snake.first)
 end
 
+def opposite_direction(dir)
+  case dir
+  when Key::UP
+    Key::DOWN
+  when Key::DOWN
+    Key::UP
+  when Key::LEFT
+    Key::RIGHT
+  when Key::RIGHT
+    Key::LEFT
+  end
+end
+
 begin
   grid = Grid.new
   pellet_pos = grid.rand_pos
@@ -121,7 +134,7 @@ begin
   while input != "q" && grid.in_bounds(snake.first) && !snake_collision(snake)
     input = grid.getch
 
-    if input && DIRECTIONS.include?(input)
+    if input && DIRECTIONS.include?(input) && direction != opposite_direction(input)
       direction = input
     end
 
