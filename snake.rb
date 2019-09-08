@@ -65,8 +65,10 @@ class Grid
     @grid.setpos(pellet_pos.x, pellet_pos.y)
     @grid.attron(color_pair(COLOR_RED)) { @grid << BLOCK }
 
-    @grid.setpos(snake.x, snake.y)
-    @grid.attron(color_pair(COLOR_GREEN)) { @grid << BLOCK }
+    snake.each do |pos|
+      @grid.setpos(pos.x, pos.y)
+      @grid.attron(color_pair(COLOR_GREEN)) { @grid << BLOCK }
+    end
     @grid.refresh
   end
 
@@ -75,8 +77,8 @@ class Grid
   end
 
   def rand_pos
-    possible_heights = (0..@grid_height).step(2).to_a
-    possible_widths = (0..@grid_width).step(2).to_a
+    possible_heights = (0...@grid_height).step(2).to_a
+    possible_widths = (0...@grid_width).step(2).to_a
     Point.new(possible_heights.sample, possible_widths.sample)
   end
 
@@ -94,29 +96,36 @@ end
 begin
   grid = Grid.new
   pellet_pos = grid.rand_pos
-  snake_head_pos = grid.rand_pos
-  grid.draw(pellet_pos, snake_head_pos)
+  snake = [grid.rand_pos]
+  grid.draw(pellet_pos, snake)
 
   input = nil
-  while input != "q" && grid.in_bounds(snake_head_pos)
+  while input != "q" && grid.in_bounds(snake.first)
     input = grid.getch
     if DIRECTIONS.include?(input)
+      new_pos = nil
+      snake_head_pos = snake.first
+
       case input
       when Key::UP
-        snake_head_pos = Point.new(snake_head_pos.x - 1, snake_head_pos.y)
+        new_pos = Point.new(snake_head_pos.x - 1, snake_head_pos.y)
       when Key::DOWN
-        snake_head_pos = Point.new(snake_head_pos.x + 1, snake_head_pos.y)
+        new_pos = Point.new(snake_head_pos.x + 1, snake_head_pos.y)
       when Key::LEFT
-        snake_head_pos = Point.new(snake_head_pos.x, snake_head_pos.y - 2)
+        new_pos = Point.new(snake_head_pos.x, snake_head_pos.y - 2)
       when Key::RIGHT
-        snake_head_pos = Point.new(snake_head_pos.x, snake_head_pos.y + 2)
+        new_pos = Point.new(snake_head_pos.x, snake_head_pos.y + 2)
       end
 
-      if snake_head_pos == pellet_pos
+      if new_pos == pellet_pos
         pellet_pos = grid.rand_pos
+      else
+        snake.pop # remove snake butt
       end
 
-      grid.draw(pellet_pos, snake_head_pos)
+      snake.unshift(new_pos)
+
+      grid.draw(pellet_pos, snake)
     end
   end
 rescue => ex
